@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0b0d">
+<title>Инфопанель Киев</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@500;600&display=swap">
+<style>
+/* Стиль «Туман»: тёмное матовое стекло, размытые орбы с параллаксом и сдвигом цвета, полоса прогресса, одно акцентное слово в заголовке. Единый тёмный вид по выбору. */
+:root {
+  --bg: #0a0b0d;
+  --glass: rgba(255, 255, 255, 0.045);
+  --glass-line: rgba(255, 255, 255, 0.09);
+  --fg: #e8edf0;
+  --muted: #8d99a3;
+  --accent: #5fd6c3;
+  --accent-soft: rgba(95, 214, 195, 0.14);
+  --warn: #f2b866;
+  --warn-soft: rgba(242, 184, 102, 0.14);
+  --code-bg: rgba(0, 0, 0, 0.38);
+  --orb-a: #2fb7a3;
+  --orb-b: #6a5cf0;
+  --orb-c: #3a86d9;
+  --font-display: "Unbounded", "IBM Plex Sans", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --shift: 0;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  overflow-x: hidden;
+}
+.progress { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; height: 3px; z-index: 20; background: transparent; }
+.progress i { display: block; height: 100%; width: 100%; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, var(--orb-a), var(--orb-b), var(--orb-c)); }
+.orbs { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.orb { position: absolute; border-radius: 50%; opacity: 0.5; filter: blur(90px) hue-rotate(calc(var(--shift) * 1deg)); will-change: transform; }
+.o1 { width: 420px; height: 420px; background: var(--orb-a); top: -120px; left: -140px; }
+.o2 { width: 480px; height: 480px; background: var(--orb-b); top: 38vh; right: -200px; }
+.o3 { width: 380px; height: 380px; background: var(--orb-c); bottom: -140px; left: 10%; }
+.wrap { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+header { display: flex; flex-direction: column; gap: 16px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(28px, 7vw, 44px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h1 em { font-style: normal; color: var(--accent); }
+.lead { color: var(--muted); margin: 0; max-width: 58ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; font-family: var(--font-mono); font-size: 12px; }
+.chip { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--glass-line); background: var(--glass); color: var(--muted); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.chip b { color: var(--accent); font-weight: 500; }
+.hint { font-size: 13px; color: var(--muted); }
+h2 { font-family: var(--font-display); font-weight: 500; font-size: 19px; margin: 0 0 6px; text-wrap: balance; }
+.sec-note { color: var(--muted); margin: 0 0 14px; font-size: 14px; }
+section { display: flex; flex-direction: column; }
+.list { display: flex; flex-direction: column; gap: 14px; }
+.entry, .callout {
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  border-radius: 16px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.entry { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.name { font-family: var(--font-mono); font-weight: 500; font-size: 15px; overflow-wrap: anywhere; min-width: 0; }
+.pill { font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.mute { background: rgba(255, 255, 255, 0.07); color: var(--muted); }
+.ver { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.rows { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 10px 20px; margin: 0; }
+.rows dt { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 4px; }
+.rows dd { margin: 0; min-width: 0; }
+.rows dd p { margin: 0 0 8px; }
+.rows dd p:last-child { margin-bottom: 0; }
+.note { margin-top: 8px; color: var(--muted); font-size: 14px; }
+.codebox { position: relative; margin-top: 8px; }
+pre { margin: 0; background: var(--code-bg); border: 1px solid var(--glass-line); border-radius: 10px; padding: 12px 14px; padding-right: 92px; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.55; }
+.copy { position: absolute; top: 8px; right: 8px; font: 500 12px var(--font-body); color: var(--fg); background: rgba(255, 255, 255, 0.07); border: 1px solid var(--glass-line); border-radius: 8px; padding: 4px 10px; cursor: pointer; }
+.copy:hover { border-color: var(--accent); color: var(--accent); }
+.copy:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code { font-family: var(--font-mono); font-size: 0.9em; background: var(--code-bg); padding: 1px 6px; border-radius: 5px; overflow-wrap: anywhere; }
+.callout { padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
+.callout p { margin: 0; }
+.callout strong { font-weight: 600; }
+.today { background: var(--accent-soft); border-color: rgba(95, 214, 195, 0.28); }
+.sources { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+.sources p { margin: 0; }
+.sources a { color: var(--accent); }
+.sources ul { margin: 0; padding-left: 18px; }
+.scroll-hint { text-align: center; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.rv { opacity: 0.35; filter: blur(6px); transform: translateY(12px); }
+.rv.in { opacity: 1; filter: none; transform: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .rv { transition: opacity .7s ease, filter .7s ease, transform .7s ease; }
+  .copy { transition: border-color .15s, color .15s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rv { opacity: 1; filter: none; transform: none; }
+}
+@media (max-width: 560px) {
+  .entry { padding: 16px; }
+  .rows { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .rows dt { padding-top: 10px; }
+  .rows dt:first-child { padding-top: 0; }
+  .orb { opacity: 0.42; }
+}
+
+.wrap { max-width: 960px; }
+.back { color: var(--accent); text-decoration: none; font-size: 14px; }
+.back:hover { text-decoration: underline; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 14px; }
+.card { background: var(--glass); border: 1px solid var(--glass-line); border-radius: 16px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card h2 { font-family: var(--font-display); font-weight: 500; font-size: 15px; margin: 0; }
+.card ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
+.card li { overflow-wrap: anywhere; }
+.weather-now { display: flex; align-items: center; gap: 16px; }
+.temp { font-family: var(--font-display); font-size: 32px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+.desc { font-size: 13px; color: var(--muted); }
+.card .sources { border-top: 1px dashed var(--glass-line); padding-top: 10px; margin-top: auto; font-size: 12.5px; display: block; line-height: 1.7; }
+.card .sources a { margin-right: 4px; }
+.foot { text-align: center; font-size: 13px; color: var(--muted); }
+</style>
+<style>html{background:#0a0b0d}body{margin:0}</style>
+</head>
+<body>
+<div class="progress" aria-hidden="true"><i id="bar"></i></div>
+<div class="orbs" aria-hidden="true">
+  <div class="orb o1" data-speed="0.10"></div>
+  <div class="orb o2" data-speed="0.20"></div>
+  <div class="orb o3" data-speed="0.32"></div>
+</div>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Обновлено · 2 ноября 2026, 16:30</div>
+    <h1>Инфопанель <em>Киев</em></h1>
+    <p class="lead">Погода, перекрытия дорог, цены, электромобили и новости автошкол. Данные собираются веб-поиском.</p>
+    <a class="back" href="/">← Claude Code Дайджест</a>
+  </header>
+  <div class="grid">
+      <article class="card">
+        <h2>Погода</h2>
+        
+        <div class="weather-now"><div class="temp">+7…+9°</div><div class="desc">Облачно, без осадков, похолодание продолжается</div></div>
+        <ul>
+          <li>Ночь: +4…+6°C</li>
+          <li>День: +7…+9°C, облачно, осадков не ожидается</li>
+          <li>Ветер северо-западный, 5–10 м/с</li>
+          <li>Температура продолжит снижаться в ближайшие дни; синоптики предупреждают о первых заморозках и мокром снеге на Киевщине</li>
+          <li>Тёплая для начала ноября погода предыдущих дней уже сменилась устойчивым похолоданием</li>
+        </ul>
+        <div class="sources">Источники: <a href="https://www.unian.ua/pogoda/news/pogoda-v-kiyevi-2-listopada-ne-poraduye-teplom-a-nezabarom-stane-shche-holodnishe-novini-kiyeva-13546776.html" target="_blank" rel="noopener">УНІАН</a>, <a href="https://glavcom.ua/kyiv/news/na-kijivshchinu-jdut-pershi-zamorozki-koli-chekati-na-minusi-ta-mokrij-snih-1152959.html" target="_blank" rel="noopener">Главком</a>, <a href="https://meteo.ua/ua/34/kiev" target="_blank" rel="noopener">Meteo.ua</a></div>
+      </article>
+      <article class="card">
+        <h2>Перекрытия дорог</h2>
+        <span class="pill warn" style="align-self:flex-start">Южный мост открыт, Виноградарь до 1 декабря</span>
+        <ul>
+          <li>Ограничение на эстакаде Южного моста (ремонт покрытия в сторону просп. Николая Бажана) действовало до 1 ноября. Движение уже восстановлено.</li>
+          <li>Проспект Европейского Союза (Виноградарь): ограничение из-за строительства метро продлили до 1 декабря 2026 года.</li>
+          <li>По неподтверждённым данным, частичное перекрытие на Редутной улице может действовать до 15 ноября. Деталей нет, проверь на официальной карте перед поездкой.</li>
+          <li>Ряд путепроводов, которые КП «Киевавтодор» капитально ремонтирует, полностью закрыт до 30 ноября 2026 года.</li>
+          <li>Актуальная карта перекрытий: КМДА и приложение «Київ Цифровий». Изменения маршрутов транспорта: Telegram-канал «Зміни руху | Київпастранс».</li>
+        </ul>
+        <div class="sources">Источники: <a href="https://lb.ua/society/2026/10/26/776282_kiievi_1_listopada_bude.html" target="_blank" rel="noopener">LB.ua</a>, <a href="https://cripo.com.ua/news/accidents/v-kyyevi-majzhe-na-misyats-perekryyut-odnu-z-golovnyh-dorig-shema/" target="_blank" rel="noopener">Україна Кримінальна</a>, <a href="https://kyiv.news/korysni-servisy/perekryttya-dorih-kyiv-mapa/" target="_blank" rel="noopener">Kyiv.news (карта)</a></div>
+      </article>
+      <article class="card">
+        <h2>Цены в магазинах</h2>
+        
+        <ul>
+          <li>По оценке экономиста Олега Пендзина, средний чек в супермаркетах в ноябре вырастет на 7–15%: продовольственная инфляция ускоряется к концу года.</li>
+          <li>Яйца остаются самой заметно подорожавшей позицией: на середину октября 65–85 грн за десяток в зависимости от сети. Продолжают дорожать и бананы.</li>
+          <li>Овощи: рост цен на 5–10% ожидается в ближайшие недели и на 20–30% зимой, сезонное предложение сокращается.</li>
+          <li>Молочная продукция и сахар тоже среди позиций, которые сильнее всего дорожали в сентябре–октябре (данные Минфина по сетям Novus, Auchan, Megamarket, Metro).</li>
+          <li>Единого лидера по ценам среди сетей по-прежнему нет, лучше сверяться с каталогами и акциями конкретных магазинов.</li>
+        </ul>
+        <div class="sources">Источники: <a href="https://tsn.ua/exclusive/dorohyy-dolar-zrostannia-tsin-i-pastka-chornoyi-piatnytsi-iak-ne-daty-sebe-obduryty-u-lystopadi-2026-3204999.html" target="_blank" rel="noopener">ТСН</a>, <a href="https://my.ua/uk/news/cluster/2026-10-17-shcho-bude-z-tsinami-na-produkti-naprikintsi-oseni" target="_blank" rel="noopener">My.ua</a>, <a href="https://index.minfin.com.ua/ua/markets/product-prices/kiev/" target="_blank" rel="noopener">Минфин (цены по Киеву)</a></div>
+      </article>
+      <article class="card">
+        <h2>Электромобили</h2>
+        
+        <ul>
+          <li>С января по август 2026 года парк Украины пополнился 22,2 тыс. электромобилей (3,7 тыс. новых и 18,5 тыс. с пробегом), данные «Укравтопрома».</li>
+          <li>В августе новых электромобилей зарегистрировали на 73% меньше, чем годом ранее, подержанных на 39% меньше. Основная причина: возврат НДС 20% на ввоз с 1 января 2026 года.</li>
+          <li>Среди новых спросом пользуются BYD и ZEEKR, в топ-5 также Volkswagen.</li>
+          <li>Polestar 2 назван изданием Autocar лучшим подержанным электромобилем 2026 года. На украинском вторичном рынке его можно найти примерно за $14 000–25 500.</li>
+          <li>1 ноября фактчекеры опровергли фейк российских пропагандистских каналов о «массовой продаже» электромобилей украинцами из-за отключений электричества: видео оказалось подделкой.</li>
+        </ul>
+        <div class="sources">Источники: <a href="https://inform.zp.ua/uk/2026/11/01/404374_rosiyany-poshyryuyut-fejk-pro-masovyj-prodazh-elektromobiliv-v-ukrayini" target="_blank" rel="noopener">Inform.zp.ua</a>, <a href="https://mmr.net.ua/autonews/events/247176" target="_blank" rel="noopener">MMR.net.ua</a>, <a href="https://radiotrek.rv.ua/news/nazvali-naykrashchiy-vzhivaniy-elektromobil-2026-roku-skilki-prosyat-za-nogo-v-ukrayini_374445.html" target="_blank" rel="noopener">Радіо ТРЕК</a></div>
+      </article>
+      <article class="card">
+        <h2>Автошколы</h2>
+        
+        <ul>
+          <li>Законопроект №16170 (зарегистрирован в Раде 20 октября нардепом Владимиром Крейденко) предлагает категорию B с 17 лет: после медосмотра, обучения и экзаменов. До 18 лет только в сопровождении опытного водителя, после 18 ограничение снимается автоматически.</li>
+          <li>Срок действия прав на мопеды, мотоциклы и легковые авто предлагают унифицировать: 15 лет.</li>
+          <li>Для новичков, впервые получивших права, вводится двухлетний испытательный срок.</li>
+          <li>Предусмотрены электронные (мобильные) водительские права и взаимное признание прав стран ЕС, включая исполнение в Украине решений о лишении права управления, принятых в ЕС.</li>
+          <li>Уже выданные права сохраняют действие. Законопроект пока на стадии регистрации: рассмотрение в комитетах и голосование впереди.</li>
+        </ul>
+        <div class="sources">Источники: <a href="https://minfin.com.ua/ua/2026/10/21/183998598/" target="_blank" rel="noopener">Мінфін</a>, <a href="https://apostrophe.ua/society/vodijski-prava-v-ukrajini-vidavatimut-za-novimi-pravilami-shcho-proponujut-zminiti.html" target="_blank" rel="noopener">Апостроф</a>, <a href="https://www.autocentre.ua/news/sobytie/ukrainskykh-vodiiv-ochikuiut-nespodivani-zminy-u-zakonodavstvi.html" target="_blank" rel="noopener">Автоцентр</a></div>
+      </article>
+  </div>
+  <p class="foot">Перекрытия и погода меняются быстрее остального, для точных деталей на конкретный час сверяйся с источниками.</p>
+</div>
+<script>
+(function () {
+  var root = document.documentElement;
+  var bar = document.getElementById('bar');
+  var orbs = Array.prototype.slice.call(document.querySelectorAll('.orb'));
+  var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var ticking = false;
+
+  function update() {
+    ticking = false;
+    var y = window.scrollY || window.pageYOffset || 0;
+    var max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    var p = Math.min(1, Math.max(0, y / max));
+    bar.style.transform = 'scaleX(' + p + ')';
+    if (still) return;
+    root.style.setProperty('--shift', (p * 70).toFixed(1));
+    orbs.forEach(function (o) {
+      var s = parseFloat(o.dataset.speed) || 0.1;
+      o.style.transform = 'translate3d(0,' + (-y * s).toFixed(1) + 'px,0)';
+    });
+  }
+  window.addEventListener('scroll', function () {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+
+  if (!still && 'IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.card').forEach(function (el) {
+      if (el.getBoundingClientRect().top > window.innerHeight) {
+        el.classList.add('rv');
+        io.observe(el);
+      }
+    });
+  }
+
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var el = document.getElementById(btn.dataset.target);
+      var text = el.innerText;
+      var flash = function (label) {
+        btn.textContent = label;
+        setTimeout(function () { btn.textContent = 'Копировать'; }, 1500);
+      };
+      var fallback = function () {
+        var r = document.createRange();
+        r.selectNodeContents(el);
+        var s = window.getSelection();
+        s.removeAllRanges();
+        s.addRange(r);
+        flash('Выделено');
+      };
+      try {
+        navigator.clipboard.writeText(text).then(function () { flash('Скопировано'); }, fallback);
+      } catch (e) { fallback(); }
+    });
+  });
+})();
+</script>
+</body>
+</html>
